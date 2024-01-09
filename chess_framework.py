@@ -96,14 +96,18 @@ worstfish = ChessPlayer('Worstfish',wf_move)
 dramaqueen = ChessPlayer('DramaQueen',dq_move)
 
 
-def game(white,black,watch=False):
+def game(game_name, white,black,watch=False):
     board = chess.Board()
+    
+
 
     game = chess.pgn.Game()
-    game.headers["Event"] = "Stockfish vs Drama Queen"
+    game.headers["Event"] = game_name
 
     if watch:
         game_board = display.start()
+        if black.name == 'Human':
+            display.flip(game_board)
     
     print("White is "+white.name)
     print("Black is "+black.name)
@@ -158,5 +162,5 @@ def game(white,black,watch=False):
             time.sleep(0.5)
         
 if __name__=='__main__':
-    game(worstfish,worstfish,watch=True)
+    game("Drama queen vs me", dramaqueen,human,watch=True)
 
