@@ -1,4 +1,4 @@
-[Event "Drama queen vs me"]
+[Event "possessed vs human"]
 [Site "?"]
 [Date "????.??.??"]
 [Round "?"]
@@ -6,4 +6,4 @@
 [Black "?"]
 [Result "*"]
 
-1. g4 d5 2. f4 Nf6 3. Kf2 Nxg4+ 4. Kf3 Bf5 5. e4 dxe4+ 6. Kg2 Qd4 7. h3 Nf2 8. Kg3 Nxd1 9. Nf3 Qf2# *
+1. e4 *
