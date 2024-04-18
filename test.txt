@@ -1,0 +1,9 @@
+[Event "test"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "white_test"]
+[Black "black_test"]
+[Result "*"]
+
+1. d4 d5 2. Bf4 *

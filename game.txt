@@ -1,9 +1,0 @@
-[Event "possessed vs human"]
-[Site "?"]
-[Date "????.??.??"]
-[Round "?"]
-[White "?"]
-[Black "?"]
-[Result "*"]
-
-1. e4 *

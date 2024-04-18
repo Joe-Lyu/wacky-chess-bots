@@ -1,13 +1,13 @@
 from stockfish import Stockfish
 import chess
 import chess.pgn
-from chessboard import display
+import chess.svg
 import time
-import cairosvg
-from PIL import Image
+import io
 stockfish = Stockfish(path="./stockfish/stockfish-windows-x86-64-avx2.exe")
 
 from players import sf_move, wf_move, di_move, dq_move, possessed_move, manual_move
+
 class ChessPlayer():
     def __init__(self,name,engine):
         self.name = name
@@ -17,7 +17,6 @@ class ChessPlayer():
         return self.engine(self, board)
 
 
-
 sf = ChessPlayer('Stockfish',sf_move)
 human = ChessPlayer('Human',manual_move)
 drawish = ChessPlayer('Drawish',di_move)
@@ -25,31 +24,100 @@ worstfish = ChessPlayer('Worstfish',wf_move)
 dramaqueen = ChessPlayer('DramaQueen',dq_move)
 possessed = ChessPlayer('Possessed',possessed_move)
 
-def game(game_name, white,black,watch=False):
-    board = chess.Board()
+from wand.api import library
+import wand.color
+import wand.image
 
+def board_to_image(board):
+
+    if board.turn == chess.BLACK:
+        boardsvg = chess.svg.board(board=board, flipped=True)
+    else:
+        boardsvg = chess.svg.board(board=board)
+    with open('board.svg','w') as f:
+        f.write(boardsvg)
+
+    with open('board.svg','r') as f:
+        svg_str = f.read()
+    svg_blob = svg_str.encode('utf-8')
+    with wand.image.Image() as image:
+        with wand.color.Color('transparent') as background_color:
+            library.MagickSetBackgroundColor(image.wand, 
+                                            background_color.resource) 
+            
+        image.read(blob=svg_blob)
+        png_image = image.make_blob("png32")
+
+    with open('board.png', "wb") as out:
+        out.write(png_image)
+
+def create_game(game_name, white,black):
     game = chess.pgn.Game()
     game.headers["Event"] = game_name
+    game.headers['White'] = white
+    game.headers['Black'] = black
+    with open(f'{game_name}.txt','w') as f:
+        f.write(str(game))
+    board = game.board()
+    board_to_image(board)
+    return board    
 
-    if watch:
-        game_board = display.start()
-        if black.name == 'Human':
-            display.flip(game_board)
+def make_move(game_name, move):
+    with open(f'{game_name}.txt','r') as f:
+        game_str = f.read()
+    pgn = io.StringIO(game_str)
+    game = chess.pgn.read_game(pgn)
+    board = game.board()
+    for i in game.mainline_moves():
+        board.push(i)
+    try:
+        node = game.end()
+        node = node.add_variation(board.parse_san(move))
+        board.push(board.parse_san(move))
+    except Exception as e:
+        print(e)
+        return False
+    board_to_image(board)
+    print(type(game))
+    with open(f'{game_name}.txt','w') as f:
+            f.write(str(game))
+    
+    if board.is_stalemate():
+        print('Stalemate')
+        return '1/2-1/2'
+    elif board.is_insufficient_material():
+        print('Stalemate by insufficient material')
+        return '1/2-1/2'
+    elif board.is_checkmate():
+        R = board.outcome().result()
+        if R == '1-0':
+            print('White wins by checkmate')
+        else:
+            print('Black wins by checkmate')
+        return R
+
+
+
+
+def game(game_name, white,black, discord_bot=False):
+    board = chess.Board()
+    game = chess.pgn.Game()
+    game.headers["Event"] = game_name
+    if discord_bot:
+        watch = False
+
     
     print("White is "+white.name)
     print("Black is "+black.name)
     movecnt = 0
 
     while True:
-        position = board.fen()
 
         if board.is_stalemate():
             print('Stalemate')
-            display.terminate()
             return '1/2-1/2'
         elif board.is_insufficient_material():
             print('Stalemate by insufficient material')
-            display.terminate()
             return '1/2-1/2'
         elif board.is_checkmate():
             R = board.outcome().result()
@@ -57,12 +125,8 @@ def game(game_name, white,black,watch=False):
                 print('White wins by checkmate')
             else:
                 print('Black wins by checkmate')
-            display.terminate()
             return R
-        if watch:
-            display.update(position, game_board)
-            display.check_for_quit()
-
+        
         turn = 'White' if movecnt % 2 == 0 else 'Black'
 
         if turn == 'White':
@@ -77,17 +141,14 @@ def game(game_name, white,black,watch=False):
         else:
             node = node.add_variation(move)
         
-        with open('game.txt','w') as f:
+        with open(f'{game_name}.txt','w') as f:
             f.write(str(game))
         
         print('Turn: ', movecnt//2+1)
         movecnt += 1
         print(turn+' played: '+ board.san(move))
         board.push(move)
-        # print('Position:')
-        # print(board)
-        board_vis = Image.open(cairosvg.svg2png(file_obj=chess.svg.board(board)))
-        board_vis.show()
+        board_to_image(board)
         if watch:
             time.sleep(0.5)
         

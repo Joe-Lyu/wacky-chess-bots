@@ -1,0 +1,9 @@
+[Event "Joe (Biological) vs joe_the_gediot"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "Joe (Biological)"]
+[Black "joe_the_gediot"]
+[Result "*"]
+
+1. e4 *
